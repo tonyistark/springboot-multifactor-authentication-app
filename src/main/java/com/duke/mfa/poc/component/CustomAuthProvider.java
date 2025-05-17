@@ -3,7 +3,6 @@ package com.duke.mfa.poc.component;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +18,7 @@ import com.duke.mfa.poc.dto.TotpAuthRequestDto;
 import com.duke.mfa.poc.entity.User;
 import com.duke.mfa.poc.repo.UserRepository;
 import com.duke.mfa.poc.utils.PasswordUtils;
+import com.duke.mfa.poc.utils.FastTotp;
 
 /**
  * @author Kazi
@@ -82,8 +82,7 @@ public class CustomAuthProvider {
         boolean validTotp = PasswordUtils.validateTotp(totpCode);
         if (!validTotp)
             throw new BadCredentialsException("Invalid OTP.");
-        Totp totp = new Totp(PasswordUtils.getBase32TotpSecret(principal.getTotpSecret()));
-        boolean totpVerified = totp.verify(totpCode);
+        boolean totpVerified = FastTotp.verifyCode(principal.getTotpSecret(), totpCode, 1, 6);
         if (!totpVerified)
             throw new BadCredentialsException("Invalid OTP.");
         principal.setMfAuthenticated(true);
